@@ -60,6 +60,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hoocal',
+        'HOST': 'localhost',
+        'USER': '',
+        'PASSWORD': '',
+        'PORT': '',
     }
 }
 
