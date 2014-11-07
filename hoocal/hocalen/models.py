@@ -22,7 +22,7 @@ class Org(models.Model):
     content = models.TextField()
     owner = models.ForeignKey('User', related_name='own_orgs')
     members = models.ManyToManyField('User', related_name='member_orgs', db_table='hoocal_org_member')
-    followers = models.ManyToManyField('User', related_name='follow_orgs', db_tables='hoocal_org_follow')
+    followers = models.ManyToManyField('User', related_name='follow_orgs', db_table='hoocal_org_follow')
 
 
 class User(models.Model):
@@ -30,7 +30,7 @@ class User(models.Model):
     email = models.EmailField()
     password = models.TextField()
     avatar = models.URLField()
-    subscribe_events = models.ManyToManyField('Events', related_name='subscribe_user', db_table='hoocal_subscribe')
+    subscribe_events = models.ManyToManyField('Event', related_name='subscribe_user', db_table='hoocal_subscribe')
 
 
 class Comment(models.Model):
