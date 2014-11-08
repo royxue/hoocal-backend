@@ -34,6 +34,7 @@ class User(models.Model):
 
 
 class Comment(models.Model):
+    content = models.TextField()
     event = models.ForeignKey('Event', related_name='comments')
     user = models.ForeignKey('User')
     created_at = models.DateTimeField(default=now)
