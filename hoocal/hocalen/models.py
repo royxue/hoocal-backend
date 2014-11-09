@@ -48,6 +48,12 @@ class Comment(models.Model):
     reply_to = models.ForeignKey('User', related_name='reply_from', null=True)
 
 
+class UserToken(models.Model):
+    user = models.ForeignKey('User', related_name='token')
+    token = models.CharField(max_length=64)
+    expired_at = models.DateTimeField()
+    is_expired = models.BooleanField(default=False)
+
 
 
     
