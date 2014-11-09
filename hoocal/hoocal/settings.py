@@ -37,6 +37,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'hocalen',
+    'tastypie',
+    'south',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -85,3 +87,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Tastypie Settings
+TASTYPIE_DEFAULT_FORMATS = ('json',)
