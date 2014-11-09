@@ -14,23 +14,30 @@ class Event(models.Model):
     org = models.ForeignKey('Org', related_name='events')
     is_public = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
-    like_users = models.ManyToManyField('User', related_name='like_events', db_table='hoocal_event_like')
-
+    like_users = models.ManyToManyField('User', related_name='like_events', db_table='hoocal_event_like', null=True)
+    
+    def __unicode__(self):
+        return unicode(self.title)
 
 class Org(models.Model):
     name = models.TextField()
     content = models.TextField()
     owner = models.ForeignKey('User', related_name='own_orgs')
     members = models.ManyToManyField('User', related_name='member_orgs', db_table='hoocal_org_member')
-    followers = models.ManyToManyField('User', related_name='follow_orgs', db_table='hoocal_org_follow')
-
+    followers = models.ManyToManyField('User', related_name='follow_orgs', db_table='hoocal_org_follow', null=True)
+    
+    def __unicode__(self):
+        return unicode(self.name)
 
 class User(models.Model):
     nickname = models.TextField()
     email = models.EmailField()
     password = models.TextField()
     avatar = models.URLField()
-    subscribe_events = models.ManyToManyField('Event', related_name='subscribe_user', db_table='hoocal_subscribe')
+    subscribe_events = models.ManyToManyField('Event', related_name='subscribe_user', db_table='hoocal_subscribe', null=True)
+    
+    def __unicode__(self):
+        return unicode(self.nickname)
 
 
 class Comment(models.Model):
@@ -38,7 +45,7 @@ class Comment(models.Model):
     event = models.ForeignKey('Event', related_name='comments')
     user = models.ForeignKey('User')
     created_at = models.DateTimeField(default=now)
-    reply_to = models.ForeignKey('User', related_name='reply_from')
+    reply_to = models.ForeignKey('User', related_name='reply_from', null=True)
 
 
 
