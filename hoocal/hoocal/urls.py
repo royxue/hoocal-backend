@@ -10,3 +10,8 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
 )
+
+# auth API for login
+urlpatterns += patterns('',
+    url(r'auth/', include('hocalen.auth.urls')),
+)
