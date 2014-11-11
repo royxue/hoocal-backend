@@ -16,5 +16,5 @@ class EventResource(ModelResource):
 
 class UserResource(ModelResource):
 
-    def get
+    class Meta
     
