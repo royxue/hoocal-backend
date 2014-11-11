@@ -3,7 +3,10 @@ from tastypie.resources import ModelResource
 from hocalen.models import Event
 
 class EventResource(ModelResource):
-    #ser = tastypie.fields.ForeignKey('')
+    user = tastypie.fields.ForeignKey('jiffy.api.')
+
+    def get_list(self, request, **kwargs):
+
 
     class Meta:
         queryset = Event.objects.all()
@@ -11,5 +14,7 @@ class EventResource(ModelResource):
         allow_method = ['get']
         
 
-#class UserResource(ModelResource):
+class UserResource(ModelResource):
+
+    def get
     
