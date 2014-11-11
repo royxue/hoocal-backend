@@ -3,7 +3,7 @@ from django.utils.timezone import now
 
 
 class Event(models.Model):
-    title = models.CharField(maxlength=100)
+    title = models.CharField(max_length=100)
     content = models.TextField()
     created_by = models.ForeignKey('User')
     created_at = models.DateTimeField(default=now)
@@ -21,7 +21,7 @@ class Event(models.Model):
 
 
 class Org(models.Model):
-    name = models.CharField(maxlength=100)
+    name = models.CharField(max_length=100)
     content = models.TextField()
     owner = models.ForeignKey('User', related_name='own_orgs')
     members = models.ManyToManyField('User', related_name='member_orgs', db_table='hoocal_org_member')
@@ -32,9 +32,9 @@ class Org(models.Model):
 
 
 class User(models.Model):
-    nickname = models.CharField(maxlength=100)
+    nickname = models.CharField(max_length=100)
     email = models.EmailField()
-    password = models.CharField(maxlength=50)
+    password = models.CharField(max_length=50)
     avatar = models.URLField()
     subscribe_events = models.ManyToManyField('Event', related_name='subscribe_user', db_table='hoocal_subscribe', null=True)
     
