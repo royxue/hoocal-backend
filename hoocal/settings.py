@@ -66,10 +66,10 @@ WSGI_APPLICATION = 'hoocal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hoocal',
-        'HOST': 'localhost',
-        'USER': 'hoocal',
-        'PASSWORD': 'hoocal',
+        'NAME': 'd1lkiebfnu80k8',
+        'HOST': 'ec2-107-22-163-140.compute-1.amazonaws.com',
+        'USER': 'rbxokynwhzusug',
+        'PASSWORD': 'QuuBTj8mAPAjbgSJrnRXi93eyj',
         'PORT': 5432,
     }
 }
