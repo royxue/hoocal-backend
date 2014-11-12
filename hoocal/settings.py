@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import dj_database_url
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
@@ -66,11 +67,11 @@ WSGI_APPLICATION = 'hoocal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'd1lkiebfnu80k8',
-        'HOST': 'ec2-107-22-163-140.compute-1.amazonaws.com',
-        'USER': 'rbxokynwhzusug',
-        'PASSWORD': 'QuuBTj8mAPAjbgSJrnRXi93eyj',
-        'PORT': 5432,
+        'NAME': 'hoocal',
+        'HOST': 'localhost',
+        'USER': '',
+        'PASSWORD': '',
+        'PORT': '',
     }
 }
 
@@ -96,7 +97,12 @@ STATIC_URL = '/static/'
 # Tastypie Settings
 TASTYPIE_DEFAULT_FORMATS = ('json',)
 
+# Heroku settings 
 
+
+
+# Use Heroku Logs
+"""
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -115,3 +121,4 @@ LOGGING = {
         }
     }
 }
+"""
