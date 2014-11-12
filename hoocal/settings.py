@@ -66,7 +66,7 @@ WSGI_APPLICATION = 'hoocal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hoocal1',
+        'NAME': 'hoocal',
         'HOST': 'localhost',
         'USER': 'hoocal',
         'PASSWORD': 'hoocal',
