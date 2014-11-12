@@ -27,6 +27,8 @@ class EventResource(HoocalBaseResource):
         queryset = Event.objects.all()
         resource_name = 'event'
         allowed_methods = ['get']
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
 
 
 class UserResource(HoocalBaseResource):
@@ -36,8 +38,8 @@ class UserResource(HoocalBaseResource):
         resource_name = 'user'
         fields = ['email', 'username']
         allowed_methods = ['get', 'post', 'patch']
-        authentication = ApiKeyAuthentication()
-        authorization = Authorization()
+        #authentication = ApiKeyAuthentication()
+        #authorization = Authorization()
 
     def validate_password(self, password):
         if not password:
@@ -60,6 +62,3 @@ class UserResource(HoocalBaseResource):
             self.validate_password(password)
         bundle.obj.password = make_password(password)
         return super(UserResource, self).save(bundle, skip_errors)
-
-
-
