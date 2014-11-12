@@ -2,5 +2,6 @@ Django==1.6.7
 django-tastypie
 requests>=2.4.3
 pip>=1.5.4
-PIL
 beautifulsoup4>=4.3.2
+south
+psycopg2
