@@ -1,10 +1,18 @@
 from django.contrib.auth.hashers import make_password
-import tastypie
-from tastypie.authentication import BasicAuthentication, Authentication, ApiKeyAuthentication
+from tastypie import fields
+from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
+from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
-from hocalen.models import Event, User
+from hocalen.api.utils import HoocalApiKeyAuthentication
+from hocalen.models import Event, User, Org
 from django.utils.translation import ugettext as _
+from tastypie.models import create_api_key
+from django.db import models
+
+
+# Every time a new user is created, a related api key is generated
+models.signals.post_save.connect(create_api_key, sender=User)
 
 
 class HoocalBaseResource(ModelResource):
@@ -21,15 +29,31 @@ class HoocalBaseResource(ModelResource):
 
 
 class EventResource(HoocalBaseResource):
-    user = tastypie.fields.ForeignKey('UserResource', 'user')
+    user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
 
     class Meta:
         queryset = Event.objects.all()
         resource_name = 'event'
         allowed_methods = ['get']
-        authentication = ApiKeyAuthentication()
+        authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
+        filtering = {
+            'title': ('icontains',),
+        }
 
+
+class OrgResource(HoocalBaseResource):
+
+    owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
+    class Meta:
+        queryset = Org.objects.all()
+        resource_name = 'org'
+        allowed_methods = ['get', 'post', 'put']
+        authentication = HoocalApiKeyAuthentication()
+        authorization = Authorization()
+        filtering = {
+            'name': ('icontains',),
+        }
 
 class UserResource(HoocalBaseResource):
 
@@ -38,14 +62,14 @@ class UserResource(HoocalBaseResource):
         resource_name = 'user'
         fields = ['email', 'username']
         allowed_methods = ['get', 'post', 'patch']
-        #authentication = ApiKeyAuthentication()
-        #authorization = Authorization()
+        authentication = Authentication()
+        authorization = Authorization()
 
     def validate_password(self, password):
         if not password:
-            raise ValueError(_("Password must be set"))
+            raise BadRequest(_("Password must be set"))
         elif len(password) < 6:
-            raise ValueError(_("The length of password must be longer than 6"))
+            raise BadRequest(_("The length of password must be longer than 6"))
 
     def obj_create(self, bundle, **kwargs):
         data = bundle.data

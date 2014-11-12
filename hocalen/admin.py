@@ -4,8 +4,8 @@ from hocalen.models import User, Event, Org, Comment
 
 
 # class UserAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'username', 'email')
-#     fields = ('username', 'email', 'password', 'avatar')
+#     list_display = ('id', 'nickname', 'email')
+#     fields = ('nickname', 'email', 'password', 'avatar')
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'created_by', 'created_at', 'org', 'is_public', 'is_deleted')
@@ -37,7 +37,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = ('email', 'nickname')
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -65,7 +65,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'is_active', 'is_staff')
+        fields = ('email', 'nickname', 'password', 'is_active', 'is_staff')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
@@ -82,10 +82,10 @@ class HoocalUserAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', 'username', 'is_staff')
+    list_display = ('email', 'nickname', 'is_staff')
     list_filter = ('is_staff',)
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'password')}),
+        (None, {'fields': ('email', 'nickname', 'password')}),
         ('Permissions', {'fields': ('is_staff', 'is_superuser')}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -93,10 +93,10 @@ class HoocalUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2')}
+            'fields': ('email', 'nickname', 'password1', 'password2')}
         ),
     )
-    search_fields = ('email', 'username')
+    search_fields = ('email', 'nickname')
     ordering = ('email',)
     filter_horizontal = ()
 

@@ -8,8 +8,10 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 import re
 from django.conf import settings
-from django.contrib.auth.models import User as AuthUser
-from tastypie.models import create_api_key
+import hmac
+from twisted.python.hashlib import sha1
+import uuid
+
 
 USER_MODEL = settings.AUTH_USER_MODEL
 
@@ -70,20 +72,20 @@ class UserToken(models.Model):
 
 class UserManager(BaseUserManager):
 
-    def _create_user(self, username, email, password,
+    def _create_user(self, nickname, email, password,
                      is_staff, is_superuser, **extra_fields):
         """
-        Creates and saves a User with the given username, email and password.
+        Creates and saves a User with the given nickname, email and password.
         """
         now = timezone.now()
-        if not username:
-            raise ValueError('The given username must be set')
+        if not nickname:
+            raise ValueError('The given nickname must be set')
         if not password:
             raise ValueError('The given password must be set')
         if not email:
             raise ValueError('The given email must be set')
         email = self.normalize_email(email)
-        user = self.model(username=username, email=email,
+        user = self.model(nickname=nickname, email=email,
                           is_staff=is_staff, is_active=True,
                           is_superuser=is_superuser, last_login=now,
                           date_joined=now, **extra_fields)
@@ -91,23 +93,23 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_user(self, username, email, password, **extra_fields):
-        return self._create_user(username, email, password, False, False,
+    def create_user(self, nickname, email, password, **extra_fields):
+        return self._create_user(nickname, email, password, False, False,
                                  **extra_fields)
 
-    def create_superuser(self, username, email, password, **extra_fields):
-        return self._create_user(username, email, password, True, True,
+    def create_superuser(self, nickname, email, password, **extra_fields):
+        return self._create_user(nickname, email, password, True, True,
                                  **extra_fields)
 
 
 # create hoocal AbstractUser as django AbstractUser does
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(_('username'), max_length=30,
+    nickname = models.CharField(_('nickname'), max_length=30,
         help_text=_('Required. 30 characters or fewer. Letters, numbers and '
                     '@/./+/-/_ characters'),
         validators=[
-            validators.RegexValidator(re.compile('^[\w.@+-]+$'), _('Enter a valid username.'), 'invalid')
-        ])
+            validators.RegexValidator(re.compile('^[\w.@+-]+$'), _('Enter a valid nickname.'), 'invalid')
+        ], db_column='username')
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
     email = models.EmailField(_('email address'), blank=True, unique=True)
@@ -125,7 +127,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'password']
+    REQUIRED_FIELDS = ['nickname', 'password']
 
     class Meta:
         verbose_name = _('user')
@@ -133,7 +135,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         abstract = False
 
     def get_absolute_url(self):
-        return "/users/%s/" % urlquote(self.username)
+        return "/users/%s/" % urlquote(self.nickname)
 
     def get_full_name(self):
         """
@@ -153,7 +155,29 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email])
 
     def __unicode__(self):
-        return unicode(self.username)
+        return unicode(self.nickname)
 
-# Every time a new user is created, a related api key is generated
-models.signals.post_save.connect(create_api_key, sender=AuthUser)
+
+class HoocalApiKey(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='api_keys')
+    key = models.CharField(max_length=128, blank=True, default='', db_index=True)
+    created = models.DateTimeField(default=now)
+    expired = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return u"%s for %s" % (self.key, self.user)
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+
+        return super(HoocalApiKey, self).save(*args, **kwargs)
+
+    def generate_key(self):
+        # Get a random UUID.
+        new_uuid = uuid.uuid4()
+        # Hmac that beast.
+        return hmac.new(new_uuid.bytes, digestmod=sha1).hexdigest()
+
+    class Meta:
+        db_table = "hoocal_apikey"

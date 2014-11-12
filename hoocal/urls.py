@@ -13,14 +13,15 @@ urlpatterns = patterns('',
 )
 
 # auth API for login
-urlpatterns += patterns('',
-    url(r'auth/', include('hocalen.auth.urls')),
+urlpatterns += patterns('hocalen.auth.views',
+    url(r'^auth/$', 'login'),
 )
 
 # api
 v1_api = Api(api_name='hoocal')
 v1_api.register(EventResource())
 v1_api.register(UserResource())
+v1_api.register(OrgResource())
 
 urlpatterns += patterns('',
     url(r'', include(v1_api.urls)),

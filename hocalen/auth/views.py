@@ -1,48 +1,40 @@
-__author__ = 'eric'
-import time
-import random
-import hashlib
+from cups import HTTP_OK
 import json
+from django.contrib.auth import authenticate
 from django.http.response import HttpResponse
-from hocalen.models import User, UserToken
+from django.views.decorators.csrf import csrf_exempt
+from tastypie.http import HttpUnauthorized, HttpBadRequest
+from hocalen.models import HoocalApiKey
 
+
+__author__ = 'eric'
 
 def login(request):
-    """
-    Login status authentication is realized by TOKEN
-    :param request: email, password
-    :return: ret, TOKEN, expire(0 for permanent)
-    """
+
     email = request.POST.get('email', None)
-    password = request.POST.get('password', None)
-    if email is not None and password is not None:
-        if not __auth_login(email, password):
-            ret = {'ret': -2, 'msg': 'auth fails'}
-            return HttpResponse(json.dumps(ret))
-        now_timestamp = int(time.time())
-        rand_number = str(random.randint(1, 10000))
-        token = hashlib.md5(hashlib.md5(email + str(now_timestamp)) + rand_number)
-        request.session['email'] = email
-        request.session['token'] = token
-        ret = {'ret': 0, 'token': token, 'expire': 0}
-        return HttpResponse(json.dumps(ret))
+    password = request.POST.get('password', None)  # md5 by front-end
+    user = authenticate(email=email, password=password)
+    if user is not None:
+        api_key = HoocalApiKey.objects.create(user=user)
+        response = HttpResponse(json.dumps({'ret': 0, 'msg': 'ok'}))
+        response['X-Hoocal-Token'] = api_key.key
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
     else:
-        ret = {'ret': -1, 'msg': 'email or password missing'}
-        return HttpResponse(json.dumps(ret))
+        return HttpUnauthorized()
 
 
-def __auth_login(email, password):
-    if User.objects.filter(email=email, password=password).exists():
-        return True
+def logout(request):
+    x_hoocal_token = request.META.get('HTTP_X_HOOCAL_TOKEN', None)
+    if x_hoocal_token is None:
+        return HttpBadRequest()
     else:
-        return False
+        try:
+            api_key = HoocalApiKey.objects.get(key=x_hoocal_token, expired=False)
+            api_key.expired = True
+            api_key.save()
+            # logout successfully, return nothing
+            return HttpResponse()
+        except HoocalApiKey.DoesNotExist:
+            return HttpBadRequest()
 
-
-def authenticate(request):
-    token = request.POST.get('token', None)
-    if token is None:
-        return False
-    elif UserToken.objects.filter(token=token).exists():
-        return True
-    else:
-        return False
