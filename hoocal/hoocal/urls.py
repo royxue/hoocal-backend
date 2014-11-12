@@ -3,7 +3,9 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 
 from tastypie.api import Api
-from hocalen.api.resources import EventResource
+from hocalen.api.resources import *
+
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -18,7 +20,8 @@ urlpatterns += patterns('',
 # api
 v1_api = Api(api_name='v1')
 v1_api.register(EventResource())
+v1_api.register(UserResource())
 
 urlpatterns += patterns('',
-        (r'^api/', include(v1_api.urls)),
+    url(r'', include(v1_api.urls)),
 )
