@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,6 +26,9 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#https://docs.djangoproject.com/en/dev/topics/auth/customizing/#extending-user
+AUTH_USER_MODEL = 'hocalen.User'
+
 
 # Application definition
 
@@ -40,6 +43,8 @@ INSTALLED_APPS = (
     'tastypie',
     'south',
 )
+
+
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -61,11 +66,11 @@ WSGI_APPLICATION = 'hoocal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hoocal',
+        'NAME': 'hoocal1',
         'HOST': 'localhost',
-        'USER': '',
-        'PASSWORD': '',
-        'PORT': '',
+        'USER': 'hoocal',
+        'PASSWORD': 'hoocal',
+        'PORT': 5432,
     }
 }
 
@@ -90,3 +95,23 @@ STATIC_URL = '/static/'
 
 # Tastypie Settings
 TASTYPIE_DEFAULT_FORMATS = ('json',)
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR + '/logs/hoocal.debug.log'
+        }
+    },
+    'loggers': {
+        'hoocal': {
+            'handlers': ['file'],
+            'level': DEBUG,
+            'propagate': False
+        }
+    }
+}
