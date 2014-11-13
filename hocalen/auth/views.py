@@ -1,7 +1,6 @@
 import json
 from django.contrib.auth import authenticate
 from django.http.response import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from tastypie.http import HttpUnauthorized, HttpBadRequest
 from hocalen.models import HoocalApiKey
 

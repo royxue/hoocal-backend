@@ -1,0 +1,66 @@
+<html>
+<head>
+	<script type='text/javascript' src='http://ajax.useso.com/ajax/libs/jquery/1.7.2/jquery.min.js?ver=3.4.2'></script>
+</head>
+<body>
+</body>
+<script type="text/javascript">
+	
+
+	function post_org(){
+
+		$.ajax({
+			type:"POST",
+			url: "http://localhost:8000/hoocal/org/",
+			data: '{"name":"org2", "content":"org2 content", "owner":"/hoocal/user/1/"}',
+			dataType: 'application/json',
+			headers: {
+				"X-Hoocal-Token": "apikey zhengweitao93@gmail.com:b35d20e434b2c85728c04e4fe12b975a1473557e"
+			},
+			success:function(result){
+				console.log(result);
+			},
+            contentType: 'application/json'
+		});
+	}
+
+	function get_orgs(){
+		$.ajax({
+			type: "GET",
+			url: "http://localhost:8000/hoocal/org/",
+			headers: {
+				"X-Hoocal-Token": "apikey zhengweitao93@gmail.com:b35d20e434b2c85728c04e4fe12b975a1473557e",
+			},
+			success:function(result){
+				console.log(result);
+			},
+            dataType: 'json'
+		})
+	}
+
+
+    function post_user(){
+        $.ajax({
+            type: 'POST',
+            url: 'http://localhost:8000/hoocal/user/',
+            success: function(result){
+                console.log(result)
+            },
+            dataType: 'application/json',
+            data: '{"email": "zhengweitao@gmail.com", "nickname": "eric2", "password": "amghost"}',
+            contentType: 'application/json'
+        })
+    }
+
+    function get_users(){
+        $.ajax({
+            type: 'GET',
+            url: 'http://localhost:8000/hoocal/user/',
+            success: function(result){
+                console.log(result)
+            }
+        })
+    }
+
+</script>
+</html>
