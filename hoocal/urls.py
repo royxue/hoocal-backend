@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
 
 from tastypie.api import Api
@@ -26,3 +26,5 @@ v1_api.register(OrgResource())
 urlpatterns += patterns('',
     url(r'', include(v1_api.urls)),
 )
+
+urlpatterns += staticfiles_urlpatterns()
