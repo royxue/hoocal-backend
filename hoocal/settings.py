@@ -13,7 +13,6 @@ import os
 import dj_database_url
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-DATABASES['default'] =  dj_database_url.config()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -75,6 +74,8 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+DATABASES['default'] =  dj_database_url.config()
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
