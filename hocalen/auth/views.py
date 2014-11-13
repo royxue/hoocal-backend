@@ -1,4 +1,3 @@
-from cups import HTTP_OK
 import json
 from django.contrib.auth import authenticate
 from django.http.response import HttpResponse
