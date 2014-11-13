@@ -62,5 +62,36 @@
         })
     }
 
+
+    function get_self(){
+        $.ajax({
+            type: 'GET',
+            url: 'http://localhost:8000/hoocal/self/',
+            success: function(result){
+                console.log(result)
+            },
+            dataType: 'json',
+            headers : {
+                "X-Hoocal-Token": "apikey zhengweitao93@gmail.com:b35d20e434b2c85728c04e4fe12b975a1473557e"
+            }
+        })
+    }
+
+    function put_self(){
+        $.ajax({
+            type: "PUT",
+            url: "http://localhost:8000/hoocal/self/",
+            success: function(result){
+                console.log(result)
+            },
+            dataType: "json",
+            headers: {
+                "X-Hoocal-Token": "apikey zhengweitao93@gmail.com:b35d20e434b2c85728c04e4fe12b975a1473557e"
+            },
+            data: '{"nickname": "eric7"}',
+            contentType: 'application/json'
+        })
+    }
+
 </script>
 </html>

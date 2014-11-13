@@ -24,6 +24,8 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+TEMPLATE_DIRS = (BASE_DIR+"/test/templates/",)
+
 ALLOWED_HOSTS = []
 
 #https://docs.djangoproject.com/en/dev/topics/auth/customizing/#extending-user
@@ -68,9 +70,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hoocal',
         'HOST': 'localhost',
-        'USER': '',
-        'PASSWORD': '',
-        'PORT': '',
+        'USER': 'hoocal',
+        'PASSWORD': 'hoocal',
+        'PORT': 5432,
     }
 }
 

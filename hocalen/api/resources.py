@@ -4,15 +4,9 @@ from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
 from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
-from hocalen.api.utils import HoocalApiKeyAuthentication
+from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization
 from hocalen.models import Event, User, Org
 from django.utils.translation import ugettext as _
-from tastypie.models import create_api_key
-from django.db import models
-
-
-# Every time a new user is created, a related api key is generated
-models.signals.post_save.connect(create_api_key, sender=User)
 
 
 class HoocalBaseResource(ModelResource):
@@ -27,6 +21,11 @@ class HoocalBaseResource(ModelResource):
         """
         return data['objects']
 
+
+class UserSpecificResource(HoocalBaseResource):
+    def get_object_list(self, request):
+        queryset = super(UserSpecificResource, self).get_object_list(request)
+        return queryset.filter(user=request.user)
 
 class EventResource(HoocalBaseResource):
     user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
@@ -54,13 +53,14 @@ class OrgResource(HoocalBaseResource):
         filtering = {
             'name': ('icontains',),
         }
+        always_return_data = True
 
 class UserResource(HoocalBaseResource):
 
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        fields = ['email', 'username']
+        fields = ['email', 'nickname']
         allowed_methods = ['get', 'post', 'patch']
         authentication = Authentication()
         authorization = Authorization()
@@ -74,10 +74,10 @@ class UserResource(HoocalBaseResource):
     def obj_create(self, bundle, **kwargs):
         data = bundle.data
         password = data.get('password', None)
-        username = data.get('username', None)
+        username = data.get('nickname', None)
         self.validate_password(password)
         if not username:
-            raise ValueError(_("Username must be set"))
+            raise BadRequest(_("Nickname must be set"))
         return super(UserResource, self).obj_create(bundle, **kwargs)
 
     def save(self, bundle, skip_errors=False):
@@ -86,3 +86,29 @@ class UserResource(HoocalBaseResource):
             self.validate_password(password)
         bundle.obj.password = make_password(password)
         return super(UserResource, self).save(bundle, skip_errors)
+
+
+class SelfResource(HoocalBaseResource):
+
+    class Meta:
+        queryset = User.objects.all()
+        resource_name = "self"
+        allowed_methods = ['get', 'put']
+        authentication = HoocalApiKeyAuthentication()
+        authorization = SelfAuthorization()
+        fields = ['email', 'nickname']
+        always_return_data = True
+
+    def alter_list_data_to_serialize(self, request, data):
+        result = super(SelfResource, self).alter_list_data_to_serialize(request, data)[0]
+        return result
+
+    def put_list(self, request, **kwargs):
+        return self.put_detail(request, **kwargs)
+
+    def patch_list(self, request, **kwargs):
+        return self.patch_detail(request, **kwargs)
+
+    def get_object_list(self, request):
+        return super(SelfResource, self).get_object_list(request).filter(pk=request.user.pk)
+

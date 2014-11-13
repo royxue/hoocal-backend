@@ -1,4 +1,6 @@
 from tastypie.authentication import ApiKeyAuthentication
+from tastypie.authorization import Authorization
+from tastypie.exceptions import Unauthorized
 from hocalen.models import HoocalApiKey
 
 
@@ -25,3 +27,40 @@ class HoocalApiKeyAuthentication(ApiKeyAuthentication):
             return self._unauthorized()
 
         return True
+
+
+class SelfAuthorization(Authorization):
+    def read_list(self, object_list, bundle):
+        # This assumes a ``QuerySet`` from ``ModelResource``.
+        return object_list.filter(pk=bundle.request.user.pk)
+
+    def read_detail(self, object_list, bundle):
+        # Is the requested object owned by the user?
+        return bundle.obj.pk == bundle.request.user.pk
+
+    def create_list(self, object_list, bundle):
+        # Assuming they're auto-assigned to ``user``.
+        return Unauthorized("Sorry, no creates.")
+
+    def create_detail(self, object_list, bundle):
+        return Unauthorized("Sorry, no creates.")
+
+    def update_list(self, object_list, bundle):
+        allowed = []
+
+        # Since they may not all be saved, iterate over them.
+        for obj in object_list:
+            if obj.pk == bundle.request.user.pk:
+                allowed.append(obj)
+
+        return allowed
+
+    def update_detail(self, object_list, bundle):
+        return bundle.obj.pk == bundle.request.user.pk
+
+    def delete_list(self, object_list, bundle):
+        # Sorry user, no deletes for you!
+        raise Unauthorized("Sorry, no deletes.")
+
+    def delete_detail(self, object_list, bundle):
+        raise Unauthorized("Sorry, no deletes.")
