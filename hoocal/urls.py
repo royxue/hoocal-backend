@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import patterns, include, url
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
 from tastypie.api import Api
 from hocalen.api.resources import *
@@ -25,6 +26,8 @@ v1_api.register(SelfResource())
 urlpatterns += patterns('',
     url(r'', include(v1_api.urls)),
 )
+
+urlpatterns += staticfiles_urlpatterns()
 
 if settings.DEBUG:
     urlpatterns += patterns('',
