@@ -8,7 +8,10 @@ from hocalen.models import HoocalApiKey
 __author__ = 'eric'
 
 def login(request):
-
+    if request.method == 'option':
+        response = HttpResponse("Allow: POST")
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
     email = request.POST.get('email', None)
     password = request.POST.get('password', None)  # md5 by front-end
     user = authenticate(email=email, password=password)
