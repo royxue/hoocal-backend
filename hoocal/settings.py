@@ -20,13 +20,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SECRET_KEY = 'wi@)*nm#o$&wni+nvk5!n1nd=%t)s@kkwjt_(&ehp3+dc=h*i3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
 
 TEMPLATE_DEBUG = True
 
 TEMPLATE_DIRS = (BASE_DIR+"/../test/templates/",)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 #https://docs.djangoproject.com/en/dev/topics/auth/customizing/#extending-user
 AUTH_USER_MODEL = 'hocalen.User'
@@ -76,7 +76,7 @@ DATABASES = {
     }
 }
 
-DATABASES['default'] =  dj_database_url.config()
+#DATABASES['default'] =  dj_database_url.config()
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
