@@ -29,7 +29,7 @@ TEMPLATE_DEBUG = True
 
 TEMPLATE_DIRS = (BASE_DIR+"/../test/templates/",)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 #https://docs.djangoproject.com/en/dev/topics/auth/customizing/#extending-user
 AUTH_USER_MODEL = 'hocalen.User'
