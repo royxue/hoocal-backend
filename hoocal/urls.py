@@ -32,7 +32,12 @@ urlpatterns += patterns('',
     url(r'', include(v1_api.urls)),
 )
 
-urlpatterns += staticfiles_urlpatterns()
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
+else:
+    urlpatterns += patterns('django.contrib.staticfiles.views',
+        url(r'^static/(?P<path>.*)$', 'serve'),
+    )
 
 if settings.DEBUG:
     urlpatterns += patterns('',
