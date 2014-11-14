@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 import re
 from django.conf import settings
 import hmac
-from twisted.python.hashlib import sha1
+from hashlib import sha1
 import uuid
 
 
@@ -61,6 +61,7 @@ class Comment(models.Model):
     class Meta:
         db_table = 'hoocal_comment'
 
+
 class UserToken(models.Model):
     user = models.ForeignKey(USER_MODEL, related_name='token')
     token = models.CharField(max_length=64)
@@ -69,6 +70,7 @@ class UserToken(models.Model):
 
     class Meta:
         db_table = 'hoocal_user_token'
+
 
 class UserManager(BaseUserManager):
 

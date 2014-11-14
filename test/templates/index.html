@@ -11,7 +11,7 @@
 
 		$.ajax({
 			type:"POST",
-			url: "http://localhost:8000/hoocal/org/",
+			url: "http://localhost:8000/hoocal/org/1/",
 			data: '{"name":"org2", "content":"org2 content", "owner":"/hoocal/user/1/"}',
 			dataType: 'application/json',
 			headers: {
@@ -89,6 +89,22 @@
                 "X-Hoocal-Token": "apikey zhengweitao93@gmail.com:b35d20e434b2c85728c04e4fe12b975a1473557e"
             },
             data: '{"nickname": "eric7"}',
+            contentType: 'application/json'
+        })
+    }
+
+    function post_subscribe(){
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:8000/hoocal/self/subscribe/",
+            success: function (result) {
+                console.log(result)
+            },
+            dataType: "json",
+            headers: {
+                "X-Hoocal-Token": "apikey zhengweitao93@gmail.com:b35d20e434b2c85728c04e4fe12b975a1473557e"
+            },
+            data: '{"user": "/hoocal/user/1"}',
             contentType: 'application/json'
         })
     }

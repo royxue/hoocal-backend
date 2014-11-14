@@ -17,11 +17,16 @@ urlpatterns += patterns('hocalen.auth.views',
     url(r'^auth/$', 'login'),
 )
 
+urlpatterns += patterns('',
+    url(r'hoocal/', include(SelfSubscribeResource().urls))
+)
+
 # api
 v1_api = Api(api_name='hoocal')
 v1_api.register(EventResource())
 v1_api.register(UserResource())
 v1_api.register(OrgResource())
+
 v1_api.register(SelfResource())
 urlpatterns += patterns('',
     url(r'', include(v1_api.urls)),

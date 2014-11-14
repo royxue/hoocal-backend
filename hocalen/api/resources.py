@@ -1,10 +1,12 @@
+from django.conf.urls import url
 from django.contrib.auth.hashers import make_password
 from tastypie import fields
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
 from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
-from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization
+from tastypie.utils.urls import trailing_slash
+from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfResourceAuthorization
 from hocalen.models import Event, User, Org
 from django.utils.translation import ugettext as _
 
@@ -21,11 +23,6 @@ class HoocalBaseResource(ModelResource):
         """
         return data['objects']
 
-
-class UserSpecificResource(HoocalBaseResource):
-    def get_object_list(self, request):
-        queryset = super(UserSpecificResource, self).get_object_list(request)
-        return queryset.filter(user=request.user)
 
 class EventResource(HoocalBaseResource):
     user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
@@ -112,3 +109,19 @@ class SelfResource(HoocalBaseResource):
     def get_object_list(self, request):
         return super(SelfResource, self).get_object_list(request).filter(pk=request.user.pk)
 
+
+class SelfSubscribeResource(HoocalBaseResource):
+
+    class Meta:
+        queryset = Event.objects.all()
+        resource_name = "self/subscribe"
+        authentication = HoocalApiKeyAuthentication()
+        authorization = SelfResourceAuthorization(self_type='like_users')
+        filtering = {
+            'name': ('icontains',),
+        }
+        detail_allowed_methods = ['post', 'detail']
+        list_allowed_methods = ['get']
+        always_return_data = True
+
+    #def post_list(self, request, **kwargs):
