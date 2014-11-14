@@ -8,7 +8,7 @@ from hocalen.models import HoocalApiKey
 __author__ = 'eric'
 
 def login(request):
-    if request.method == 'option':
+    if request.method == 'OPTION':
         response = HttpResponse("Allow: POST")
         response["Access-Control-Allow-Origin"] = "*"
         return response
