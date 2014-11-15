@@ -7,8 +7,9 @@ from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
 from tastypie.utils.urls import trailing_slash
 from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfResourceAuthorization
-from hocalen.models import Event, User, Org
+from hocalen.models import Event, User, Org, Comment
 from django.utils.translation import ugettext as _
+from tastypie.constants import ALL_WITH_RELATIONS
 
 
 class HoocalBaseResource(ModelResource):
@@ -24,35 +25,6 @@ class HoocalBaseResource(ModelResource):
         return data['objects']
 
 
-<<<<<<< HEAD
-class EventResource(HoocalBaseResource):
-
-    class Meta:
-        queryset = Event.objects.all()
-        resource_name = 'event'
-        allowed_methods = ['get']
-        authentication = HoocalApiKeyAuthentication()
-        authorization = Authorization()
-        filtering = {
-            'title': ('icontains',),
-        }
-
-
-class OrgResource(HoocalBaseResource):
- 
-    class Meta:
-        queryset = Org.objects.all()
-        resource_name = 'org'
-        allowed_methods = ['get', 'post', 'put']
-        authentication = HoocalApiKeyAuthentication()
-        authorization = Authorization()
-        filtering = {
-            'name': ('icontains',),
-        }
-        always_return_data = True
-
-=======
->>>>>>> Hackathon
 class UserResource(HoocalBaseResource):
 
     class Meta:
@@ -87,7 +59,9 @@ class UserResource(HoocalBaseResource):
 
 
 class EventResource(HoocalBaseResource):
-    user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
+    created_by = fields.ForeignKey('hocalen.api.resources.UserResource', 'created_by')
+    org = fields.ForeignKey('hocalen.api.resources.OrgResource', 'org')
+    like_users = fields.ManyToManyField('hocalen.api.resources.UserResource', 'like_users')
 
     def dehydrate(self, bundle):
         pass
@@ -100,6 +74,8 @@ class EventResource(HoocalBaseResource):
         authorization = Authorization()
         filtering = {
             'title': ('icontains',),
+            'created_by': ALL_WITH_RELATIONS,
+            'org': ALL_WITH_RELATIONS,
         }
 
     def object_create(self, bundle, **kwargs):
@@ -111,6 +87,8 @@ class EventResource(HoocalBaseResource):
         
 class OrgResource(HoocalBaseResource):
     owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
+    members = fields.ManyToManyField('hocalen.api.resources.UserResource', 'members')
+    followers = fields.ManyToManyField('hocalen.api.resources.UserResource', 'followers')
 
     class Meta:
         queryset = Org.objects.all()
@@ -120,12 +98,35 @@ class OrgResource(HoocalBaseResource):
         authorization = Authorization()
         filtering = {
             'name': ('icontains',),
+            'owner': ALL_WITH_RELATIONS,
+            'members': ALL_WITH_RELATIONS,
         }
         always_return_data = True
     
     def object_create(self, bundle, **kwargs):
         user = bundle.request.user
         return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)       
+
+
+class CommentResource(HoocalBaseResource):
+    event = fields.ForeignKey('hocalen.api.resources.EventResource', 'event')
+    user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')  
+    reply_to = fields.ForeignKey('hocalen.api.resources.UserResource', 'reply_to')
+
+    class Meta:
+        queryset = Comment.objects.all()
+        resource_name = "comment"
+        allowed_methods = ['get', 'post']
+        authentication = HoocalApiKeyAuthentication()
+        authorization = Authorization()
+        filtering = {
+                'event': ALL_WITH_RELATIONS,
+                'user': ALL_WITH_RELATIONS,
+                }
+
+    def obj_create(self, bundle, **kwargs):
+        user = bundle.request.user
+        return super(CommentResource,self).obj_create(bundle, user=user, **kwargs))
 
 
 class SelfResource(HoocalBaseResource):
