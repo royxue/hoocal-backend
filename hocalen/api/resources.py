@@ -14,8 +14,7 @@ from hocalen.models import Event, User, Org, Comment
 from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization
 from django.utils.translation import ugettext as _
 from tastypie.constants import ALL_WITH_RELATIONS
-from utils import timestamp_of
-
+import calendar
 
 class HoocalBaseResource(ModelResource):
     """
@@ -218,6 +217,7 @@ class SelfGroupResource(HoocalBaseResource):
         authorization = SelfSetResourceAuthorization(self_type='owner', no_delete=False)
 
 
-
-
-
+def timestamp_of(d):
+  if hasattr(d, 'isoformat'):
+    return calendar.timegm(d.utctimetuple())
+  return None
