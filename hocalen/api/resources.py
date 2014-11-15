@@ -140,7 +140,7 @@ class CommentResource(HoocalBaseResource):
 
     def obj_create(self, bundle, **kwargs):
         user = bundle.request.user
-        return super(CommentResource,self).obj_create(bundle, user=user, **kwargs))
+        return super(CommentResource,self).obj_create(bundle, user=user, **kwargs)
 
 
 class SelfResource(HoocalBaseResource):
