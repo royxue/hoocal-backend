@@ -25,7 +25,6 @@ class HoocalBaseResource(ModelResource):
 
 
 class EventResource(HoocalBaseResource):
-    user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
 
     class Meta:
         queryset = Event.objects.all()
@@ -39,8 +38,7 @@ class EventResource(HoocalBaseResource):
 
 
 class OrgResource(HoocalBaseResource):
-
-    owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
+ 
     class Meta:
         queryset = Org.objects.all()
         resource_name = 'org'
