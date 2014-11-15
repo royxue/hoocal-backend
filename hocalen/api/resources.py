@@ -13,7 +13,7 @@ from tastypie.utils.urls import trailing_slash
 from hocalen.models import Event, User, Org, Comment
 from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization
 from django.utils.translation import ugettext as _
-from tastypie.constants import ALL_WITH_RELATIONS
+from tastypie.constants import ALL_WITH_RELATIONS, ALL
 import calendar
 
 class HoocalBaseResource(ModelResource):
@@ -42,11 +42,15 @@ class UserResource(HoocalBaseResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        fields = ['email', 'nickname']
+        fields = ['email', 'nickname', 'id']
         allowed_methods = ['get', 'post', 'patch', 'options']
         authentication = Authentication()
         authorization = Authorization()
         serializers = serializers.Serializer(formats=['json', 'xml'])
+        filtering = {
+                'email': ALL,
+                'id': ALL,
+                }
 
     def validate_password(self, password):
         if not password:
@@ -92,18 +96,20 @@ class EventResource(HoocalBaseResource):
         allowed_methods = ['get', 'post', 'put', 'options']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
-        serializers = serializers.Serializer(formats=['json', 'xml'])   
+        serializers = serializers.Serializer(formats=['json', 'xml']) 
+        fields = ['title', 'id', 'org', 'created_by']
         filtering = {
             'title': ('icontains',),
             'created_by': ALL_WITH_RELATIONS,
             'org': ALL_WITH_RELATIONS,
+            'id': ALL,
         }
 
     def object_create(self, bundle, **kwargs):
         user = bundle.request.user
         if bundle['org']:
             org = Org.objects().filter(name=bundle['org'])
-        return super(EventResource, self).obj_create(bundle, created_by=user, **kwargs)
+        return super(EventResource, self).obj_create(bundle, created_by=user, org=org, **kwargs)
 
         
 class OrgResource(HoocalBaseResource):
@@ -118,10 +124,12 @@ class OrgResource(HoocalBaseResource):
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
         serializers = serializers.Serializer(formats=['json', 'xml'])
+        fields  = ['name', 'owner', 'members', 'id']
         filtering = {
             'name': ('icontains',),
             'owner': ALL_WITH_RELATIONS,
             'members': ALL_WITH_RELATIONS,
+            'id': ALL,
         }
         always_return_data = True
     
@@ -141,9 +149,11 @@ class CommentResource(HoocalBaseResource):
         allowed_methods = ['get', 'post']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
+        fields = ['event', 'user', 'id']
         filtering = {
                 'event': ALL_WITH_RELATIONS,
                 'user': ALL_WITH_RELATIONS,
+                'id': ALL,
                 }
 
     def obj_create(self, bundle, **kwargs):
