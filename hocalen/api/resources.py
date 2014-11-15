@@ -84,7 +84,7 @@ class EventResource(HoocalBaseResource):
         resource_name = 'event'
         allowed_methods = ['get', 'post', 'put', 'options']
         authentication = HoocalApiKeyAuthentication()
-        authorization = SelfSetResourceAuthorization('subscribe_users')
+        authorization = Authorization()
         serializers = serializers.Serializer(formats=['json', 'xml'])   
         filtering = {
             'title': ('icontains',),
@@ -110,6 +110,7 @@ class OrgResource(HoocalBaseResource):
         allowed_methods = ['get', 'post', 'put']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
+        serializers = serializers.Serializer(formats=['json', 'xml'])
         filtering = {
             'name': ('icontains',),
             'owner': ALL_WITH_RELATIONS,
