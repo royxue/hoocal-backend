@@ -93,6 +93,10 @@ class OrgResource(HoocalBaseResource):
             'name': ('icontains',),
         }
         always_return_data = True
+    
+    def object_create(self, bundle, **kwargs):
+        user = bundle.request.user
+        return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)       
 
 
 class SelfResource(HoocalBaseResource):
