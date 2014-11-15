@@ -14,6 +14,7 @@ from hocalen.models import Event, User, Org, Comment
 from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization
 from django.utils.translation import ugettext as _
 from tastypie.constants import ALL_WITH_RELATIONS
+from utils import timestamp_of
 
 
 class HoocalBaseResource(ModelResource):
@@ -77,7 +78,11 @@ class EventResource(HoocalBaseResource):
     like_users = fields.ManyToManyField('hocalen.api.resources.UserResource', 'like_users')
 
     def dehydrate(self, bundle):
-        pass
+        bundle.data['start_time'] = timestamp_of(bundle.data['start_time'])
+        bundle.data['end_time'] = timestamp_of(bundle.data['end_time'])
+        bundle.data['created_at'] = timestamp_of(bundle.data['created_at'])
+        bundle.data['last_modified'] = timestamp_of(bundle.data['last_modified'])
+        return bundle
 
     class Meta:
         queryset = Event.objects.all()
