@@ -17,6 +17,7 @@ from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, Sel
 from django.utils.translation import ugettext as _
 from tastypie.constants import ALL_WITH_RELATIONS, ALL
 import calendar
+import datetime
 
 class HoocalBaseResource(ModelResource):
     """
@@ -98,9 +99,11 @@ class EventResource(HoocalBaseResource):
 
     def object_create(self, bundle, **kwargs):
         user = bundle.request.user
+        start_time = datetime.datetime.fromtimestamp(bundle.data['start_time'])
+        end_time = datetime.datetime.fromtimestamp(bundle.data['end_time'])
         if bundle['org']:
             org = Org.objects().filter(name=bundle['org'])
-        return super(EventResource, self).obj_create(bundle, created_by=user, org=org, **kwargs)
+        return super(EventResource, self).obj_create(bundle, created_by=user, org=org, start_time=start_time, end_time=end_time, **kwargs)
 
     def prepend_urls(self):
         return [
