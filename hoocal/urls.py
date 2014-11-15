@@ -33,8 +33,4 @@ urlpatterns += patterns('',
 )
 
 urlpatterns += staticfiles_urlpatterns()
-
-if settings.DEBUG:
-    urlpatterns += patterns('',
-        url(r'^test/',include('test.urls'))
-    )
+    
