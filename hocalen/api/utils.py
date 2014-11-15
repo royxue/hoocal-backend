@@ -71,13 +71,80 @@ class SelfAuthorization(Authorization):
         raise Unauthorized("Sorry, no deletes.")
 
 
+class SelfSetResourceAuthorization(Authorization):
+    """
+    Adaptive Authorization for different relationship between Resource and User
+    """
+    def __init__(self, self_type='user', no_delete=True):
+        self.filter_kwargs = {}
+        self.self_type = self_type
+        self.no_delete = no_delete
+
+    def read_list(self, object_list, bundle):
+        # This assumes a ``QuerySet`` from ``ModelResource``.
+        # self.filter_kwargs[self.self_type] = bundle.request.user
+        # return object_list.filter(**self.filter_kwargs)
+        allowed = []
+
+        # Since they may not all be saved, iterate over them.
+        for obj in object_list:
+            subscribe_users = getattr(obj, self.self_type).all()
+            if subscribe_users.filter(pk=bundle.request.user.pk):
+                allowed.append(obj)
+
+        return allowed
+
+    def read_detail(self, object_list, bundle):
+        # Is the requested object owned by the user?
+        return getattr(bundle.obj, self.self_type).filter(pk=bundle.request.user.pk)
+
+    def create_list(self, object_list, bundle):
+        # Assuming they're auto-assigned to ``user``.
+        return object_list
+
+    def create_detail(self, object_list, bundle):
+        return getattr(bundle.obj, self.self_type).filter(pk=bundle.request.user.pk)
+
+    def update_list(self, object_list, bundle):
+        allowed = []
+
+        for obj in object_list:
+            subscribe_users = getattr(obj, self.self_type).all()
+            if subscribe_users.filter(pk=bundle.request.user.pk):
+                allowed.append(obj)
+
+        return allowed
+
+    def update_detail(self, object_list, bundle):
+        return getattr(bundle.obj, self.self_type) == bundle.request.user
+
+    def delete_list(self, object_list, bundle):
+        if self.no_delete:
+            raise Unauthorized("Sorry, no deletes.")
+
+        allowed = []
+
+        for obj in object_list:
+            subscribe_users = getattr(obj, self.self_type).all()
+            if subscribe_users.filter(pk=bundle.request.user.pk):
+                allowed.append(obj)
+
+        return allowed
+
+    def delete_detail(self, object_list, bundle):
+        if self.no_delete:
+            raise Unauthorized("Sorry, no deletes.")
+        return getattr(bundle.obj, self.self_type) == bundle.request.user
+
+
 class SelfResourceAuthorization(Authorization):
     """
     Adaptive Authorization for different relationship between Resource and User
     """
-    def __init__(self, self_type='user'):
+    def __init__(self, self_type='user', no_delete=True):
         self.filter_kwargs = {}
         self.self_type = self_type
+        self.no_delete = no_delete
 
     def read_list(self, object_list, bundle):
         # This assumes a ``QuerySet`` from ``ModelResource``.
@@ -109,6 +176,8 @@ class SelfResourceAuthorization(Authorization):
         return getattr(bundle.obj, self.self_type) == bundle.request.user
 
     def delete_list(self, object_list, bundle):
+        if self.no_delete:
+            raise Unauthorized("Sorry, no deletes.")
         # Sorry user, no deletes for you!
         allowed = []
 
@@ -120,32 +189,7 @@ class SelfResourceAuthorization(Authorization):
         return allowed
 
     def delete_detail(self, object_list, bundle):
+        if self.no_delete:
+            raise Unauthorized("Sorry, no deletes.")
         return getattr(bundle.obj, self.self_type) == bundle.request.user
 
-
-class UnsortedApi(Api):
-    @property
-    def urls(self):
-        """
-        Provides URLconf details for the ``Api`` and all registered
-        ``Resources`` beneath it.
-        """
-        pattern_list = [
-            url(r"^(?P<api_name>%s)%s$" % (self.api_name, trailing_slash()), self.wrap_view('top_level'), name="api_%s_top_level" % self.api_name),
-        ]
-
-        for name in self._registry.keys():
-            self._registry[name].api_name = self.api_name
-            pattern_list.append((r"^(?P<api_name>%s)/" % self.api_name, include(self._registry[name].urls)))
-
-        urlpatterns = self.prepend_urls()
-
-        overridden_urls = self.override_urls()
-        if overridden_urls:
-            warnings.warn("'override_urls' is a deprecated method & will be removed by v1.0.0. Please rename your method to ``prepend_urls``.")
-            urlpatterns += overridden_urls
-
-        urlpatterns += patterns('',
-            *pattern_list
-        )
-        return urlpatterns

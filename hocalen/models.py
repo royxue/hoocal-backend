@@ -126,7 +126,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     avatar = models.URLField()
-    subscribe_events = models.ManyToManyField('Event', related_name='subscribe_user', db_table='hoocal_subscribe', null=True)
+    subscribe_events = models.ManyToManyField('Event', related_name='subscribe_users', db_table='hoocal_subscribe', null=True)
 
     objects = UserManager()
 

@@ -29,6 +29,7 @@ class XsSharing(object):
             response['Access-Control-Allow-Origin']  = XS_SHARING_ALLOWED_ORIGINS 
             response['Access-Control-Allow-Methods'] = ",".join( XS_SHARING_ALLOWED_METHODS ) 
             response['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, X-Hoocal-Token'
+            response['Access-Control-Expose-Headers'] = 'X-Hoocal-Token'
             return response
 
         return None
@@ -41,4 +42,5 @@ class XsSharing(object):
         response['Access-Control-Allow-Origin']  = XS_SHARING_ALLOWED_ORIGINS 
         response['Access-Control-Allow-Methods'] = ",".join( XS_SHARING_ALLOWED_METHODS )
         response['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, X-Hoocal-Token'
+        response['Access-Control-Expose-Headers'] = 'X-Hoocal-Token'
         return response
