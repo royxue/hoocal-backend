@@ -120,7 +120,7 @@ class OrgResource(HoocalBaseResource):
     class Meta:
         queryset = Org.objects.all()
         resource_name = 'org'
-        allowed_methods = ['get', 'post', 'put']
+        allowed_methods = ['get', 'post', 'put', 'options']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
         serializers = serializers.Serializer(formats=['json', 'xml'])
@@ -137,6 +137,22 @@ class OrgResource(HoocalBaseResource):
         user = bundle.request.user
         return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)       
 
+    def __authorized(self, ):
+        pass
+
+    def put_detail(self, request, **kwargs):
+        if self.__authorized(request):
+            org_id = self._meta.detail_uri_name
+
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/member/%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+
+    def __get_members(self, **kwargs):
+        org_id = self._meta.detail_uri_name
+        org = Org.objects.get(pk=org_id)
 
 class CommentResource(HoocalBaseResource):
     event = fields.ForeignKey('hocalen.api.resources.EventResource', 'event')
