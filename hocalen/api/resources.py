@@ -97,7 +97,6 @@ class EventResource(HoocalBaseResource):
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
         serializers = serializers.Serializer(formats=['json', 'xml']) 
-        fields = ['title', 'id', 'org', 'created_by']
         filtering = {
             'title': ('icontains',),
             'created_by': ALL_WITH_RELATIONS,
@@ -124,7 +123,6 @@ class OrgResource(HoocalBaseResource):
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
         serializers = serializers.Serializer(formats=['json', 'xml'])
-        fields  = ['name', 'owner', 'members', 'id']
         filtering = {
             'name': ('icontains',),
             'owner': ALL_WITH_RELATIONS,
@@ -149,7 +147,6 @@ class CommentResource(HoocalBaseResource):
         allowed_methods = ['get', 'post']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
-        fields = ['event', 'user', 'id']
         filtering = {
                 'event': ALL_WITH_RELATIONS,
                 'user': ALL_WITH_RELATIONS,
