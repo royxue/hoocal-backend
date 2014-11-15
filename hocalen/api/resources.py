@@ -193,7 +193,8 @@ class OrgResource(HoocalBaseResource):
         if not self.__authorized(request, **kwargs):
             raise Unauthorized()
         org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
-        objects = org.members.all()
+        applicable_filters = UserResource().build_filters(request.GET.copy() if hasattr(request, 'GET') else None)
+        objects = org.members.filter(**applicable_filters)
         sorted_objects = self.apply_sorting(objects, options=request.GET)
         paginator = self._meta.paginator_class(request.GET, sorted_objects)
         to_be_serialized = paginator.page()
