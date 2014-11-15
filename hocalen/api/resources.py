@@ -1,12 +1,16 @@
+import json
 from django.conf.urls import url
 from django.contrib.auth.hashers import make_password
-from tastypie import fields
+from django.core.exceptions import ObjectDoesNotExist
+from django.http.response import HttpResponse
+from tastypie import fields, serializers
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
-from tastypie.exceptions import BadRequest
+from tastypie.exceptions import BadRequest, Unauthorized
+from tastypie.http import HttpBadRequest
 from tastypie.resources import ModelResource
 from tastypie.utils.urls import trailing_slash
-from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfResourceAuthorization
+from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization
 from hocalen.models import Event, User, Org
 from django.utils.translation import ugettext as _
 
@@ -23,16 +27,26 @@ class HoocalBaseResource(ModelResource):
         """
         return data['objects']
 
+    def options_list(self, request, **kwargs):
+        str_list_allowed_methods = ' '.join(self.list_allowed_methods).upper()
+        return HttpResponse("Allow: %s" % str_list_allowed_methods)
+
+    def options_detail(self, request, **kwargs):
+        str_detail_allowed_methods = ' '.join(self.detail_allowed_methods).upper()
+        return HttpResponse("Allow: %s" % str_detail_allowed_methods)
+
 
 class EventResource(HoocalBaseResource):
-    user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
+
+    created_by = fields.ForeignKey('hocalen.api.resources.UserResource', 'created_by')
 
     class Meta:
         queryset = Event.objects.all()
         resource_name = 'event'
-        allowed_methods = ['get']
+        allowed_methods = ['get', 'options']
         authentication = HoocalApiKeyAuthentication()
-        authorization = Authorization()
+        authorization = SelfSetResourceAuthorization('subscribe_users')
+        serializers = serializers.Serializer(formats=['json', 'xml'])
         filtering = {
             'title': ('icontains',),
         }
@@ -41,16 +55,19 @@ class EventResource(HoocalBaseResource):
 class OrgResource(HoocalBaseResource):
 
     owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
+
     class Meta:
         queryset = Org.objects.all()
         resource_name = 'org'
-        allowed_methods = ['get', 'post', 'put']
+        allowed_methods = ['get', 'post', 'put', 'options']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
         filtering = {
             'name': ('icontains',),
         }
         always_return_data = True
+        serializers = serializers.Serializer(formats=['json', 'xml'])
+
 
 class UserResource(HoocalBaseResource):
 
@@ -58,9 +75,10 @@ class UserResource(HoocalBaseResource):
         queryset = User.objects.all()
         resource_name = 'user'
         fields = ['email', 'nickname']
-        allowed_methods = ['get', 'post', 'patch']
+        allowed_methods = ['get', 'post', 'patch', 'options']
         authentication = Authentication()
         authorization = Authorization()
+        serializers = serializers.Serializer(formats=['json', 'xml'])
 
     def validate_password(self, password):
         if not password:
@@ -90,11 +108,12 @@ class SelfResource(HoocalBaseResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = "self"
-        allowed_methods = ['get', 'put']
+        allowed_methods = ['get', 'put', 'options']
         authentication = HoocalApiKeyAuthentication()
         authorization = SelfAuthorization()
         fields = ['email', 'nickname']
         always_return_data = True
+        serializers = serializers.Serializer(formats=['json', 'xml'])
 
     def alter_list_data_to_serialize(self, request, data):
         result = super(SelfResource, self).alter_list_data_to_serialize(request, data)[0]
@@ -116,12 +135,43 @@ class SelfSubscribeResource(HoocalBaseResource):
         queryset = Event.objects.all()
         resource_name = "self/subscribe"
         authentication = HoocalApiKeyAuthentication()
-        authorization = SelfResourceAuthorization(self_type='like_users')
+        authorization = SelfSetResourceAuthorization(self_type='subscribe_users', no_delete=False)
         filtering = {
             'name': ('icontains',),
         }
-        detail_allowed_methods = ['post', 'detail']
-        list_allowed_methods = ['get']
+        detail_allowed_methods = ['post', 'delete', 'options']
+        list_allowed_methods = ['get', 'options']
         always_return_data = True
+        serializers = serializers.Serializer(formats=['json', 'xml'])
 
-    #def post_list(self, request, **kwargs):
+    def post_detail(self, request, **kwargs):
+        field_name = self._meta.detail_uri_name # seems field_name is fixed, namely "pk"
+        event_id = kwargs[field_name]
+        try:
+            request.user.subscribe_events.add(Event.objects.get(pk=event_id))
+        except ObjectDoesNotExist:
+            return HttpBadRequest()
+        return HttpResponse(json.dumps({'ret': 0, 'msg': 'subscribe ok'}))
+
+    def delete_detail(self, request, **kwargs):
+        field_name = self._meta.detail_uri_name # seems field_name is fixed, namely "pk"
+        event_id = kwargs[field_name]
+        try:
+            request.user.subscribe_events.remove(Event.objects.get(pk=event_id))
+        except ObjectDoesNotExist:
+            return HttpBadRequest()
+        return HttpResponse(json.dumps({'ret': 0, 'msg': 'unsubscribe ok'}))
+
+
+class SelfGroupResource(HoocalBaseResource):
+
+    class Meta:
+        queryset = Org.objects.all()
+        resource_name = 'self/group'
+        authentication = HoocalApiKeyAuthentication()
+        authorization = SelfSetResourceAuthorization(self_type='owner', no_delete=False)
+
+
+
+
+
