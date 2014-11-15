@@ -12,8 +12,9 @@ def login(request):
         resp = HttpResponse()
         resp['Allow'] = 'POST'
         return resp
-    email = request.POST.get('email', None)
-    password = request.POST.get('password', None)  # md5 by front-end
+    data = json.loads(request.body)
+    email = data.get('email', None)
+    password = data.get('password', None)  # md5 by front-end
     user = authenticate(email=email, password=password)
     if user is not None:
         api_key = HoocalApiKey.objects.create(user=user)

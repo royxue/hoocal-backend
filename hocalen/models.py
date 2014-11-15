@@ -92,6 +92,7 @@ class UserManager(BaseUserManager):
                           is_superuser=is_superuser, last_login=now,
                           date_joined=now, **extra_fields)
         password == md5(md5(password).lower()+'hoocal').lower()
+        print password
         user.set_password(password)
         user.save(using=self._db)
         return user
