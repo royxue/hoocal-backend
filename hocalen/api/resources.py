@@ -36,9 +36,13 @@ class HoocalBaseResource(ModelResource):
         return HttpResponse("Allow: %s" % str_detail_allowed_methods)
 
 
+<<<<<<< HEAD
 class EventResource(HoocalBaseResource):
+<<<<<<< HEAD
 
     created_by = fields.ForeignKey('hocalen.api.resources.UserResource', 'created_by')
+=======
+>>>>>>> da42cdc714953308291aa1ef15a25b6705696ad8
 
     class Meta:
         queryset = Event.objects.all()
@@ -53,9 +57,13 @@ class EventResource(HoocalBaseResource):
 
 
 class OrgResource(HoocalBaseResource):
+<<<<<<< HEAD
 
     owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
 
+=======
+ 
+>>>>>>> da42cdc714953308291aa1ef15a25b6705696ad8
     class Meta:
         queryset = Org.objects.all()
         resource_name = 'org'
@@ -69,6 +77,8 @@ class OrgResource(HoocalBaseResource):
         serializers = serializers.Serializer(formats=['json', 'xml'])
 
 
+=======
+>>>>>>> Hackathon
 class UserResource(HoocalBaseResource):
 
     class Meta:
@@ -101,6 +111,48 @@ class UserResource(HoocalBaseResource):
             self.validate_password(password)
         bundle.obj.password = make_password(password)
         return super(UserResource, self).save(bundle, skip_errors)
+
+
+class EventResource(HoocalBaseResource):
+    user = fields.ForeignKey('hocalen.api.resources.UserResource', 'user')
+
+    def dehydrate(self, bundle):
+        pass
+
+    class Meta:
+        queryset = Event.objects.all()
+        resource_name = 'event'
+        allowed_methods = ['get', 'post', 'put']
+        authentication = HoocalApiKeyAuthentication()
+        authorization = Authorization()
+        filtering = {
+            'title': ('icontains',),
+        }
+
+    def object_create(self, bundle, **kwargs):
+        user = bundle.request.user
+        if bundle['org']:
+            org = Org.objects().filter(name=bundle['org'])
+        return super(EventResource, self).obj_create(bundle, created_by=user, **kwargs)
+
+        
+class OrgResource(HoocalBaseResource):
+    owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
+
+    class Meta:
+        queryset = Org.objects.all()
+        resource_name = 'org'
+        allowed_methods = ['get', 'post', 'put']
+        authentication = HoocalApiKeyAuthentication()
+        authorization = Authorization()
+        filtering = {
+            'name': ('icontains',),
+        }
+        always_return_data = True
+    
+    def object_create(self, bundle, **kwargs):
+        user = bundle.request.user
+        return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)       
 
 
 class SelfResource(HoocalBaseResource):
