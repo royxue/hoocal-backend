@@ -56,11 +56,14 @@ class UserResource(HoocalBaseResource):
 
     def obj_create(self, bundle, **kwargs):
         data = bundle.data
+        email = data.get('email', None)
         password = data.get('password', None)
-        username = data.get('nickname', None)
+        nickname = data.get('nickname', None)
         self.validate_password(password)
-        if not username:
-            raise BadRequest(_("Nickname must be set"))
+        if not nickname and not email:
+            raise BadRequest(json.dumps({'ret': -1, 'msg': _("Nickname and Email must be set")}))
+        elif User.objects.filter(email=email).exists():
+            raise BadRequest(json.dumps({'ret': -2, 'msg': _("Email must duplicated")}))
         return super(UserResource, self).obj_create(bundle, **kwargs)
 
     def save(self, bundle, skip_errors=False):
@@ -206,15 +209,6 @@ class SelfSubscribeResource(HoocalBaseResource):
         except ObjectDoesNotExist:
             return HttpBadRequest()
         return HttpResponse(json.dumps({'ret': 0, 'msg': 'unsubscribe ok'}))
-
-
-class SelfGroupResource(HoocalBaseResource):
-
-    class Meta:
-        queryset = Org.objects.all()
-        resource_name = 'self/group'
-        authentication = HoocalApiKeyAuthentication()
-        authorization = SelfSetResourceAuthorization(self_type='owner', no_delete=False)
 
 
 def timestamp_of(d):
