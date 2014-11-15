@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 import re
 from django.conf import settings
 import hmac
-from hashlib import sha1
+from hashlib import sha1, md5
 import uuid
 
 
@@ -91,6 +91,7 @@ class UserManager(BaseUserManager):
                           is_staff=is_staff, is_active=True,
                           is_superuser=is_superuser, last_login=now,
                           date_joined=now, **extra_fields)
+        password == md5(md5(password)+'hoocal')
         user.set_password(password)
         user.save(using=self._db)
         return user

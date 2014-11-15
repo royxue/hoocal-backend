@@ -21,7 +21,7 @@ SECRET_KEY = 'wi@)*nm#o$&wni+nvk5!n1nd=%t)s@kkwjt_(&ehp3+dc=h*i3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if os.environ['HEROKU_ENV'] == 'TRUE':
+if os.environ.get('HEROKU_ENV', 'FALSE') == 'TRUE':
     DEBUG = False
 else:
     DEBUG = True
@@ -60,6 +60,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hocalen.middleware.django-crossdomainxhr-middleware.XsSharing',
 )
 
 ROOT_URLCONF = 'hoocal.urls'
@@ -81,7 +82,7 @@ DATABASES = {
     }
 }
 
-#DATABASES['default'] =  dj_database_url.config()
+DATABASES['default'] =  dj_database_url.config()
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/

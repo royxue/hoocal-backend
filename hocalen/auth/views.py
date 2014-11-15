@@ -9,9 +9,9 @@ __author__ = 'eric'
 
 def login(request):
     if request.method == 'OPTIONS':
-        response = HttpResponse("Allow: POST")
-        response["Access-Control-Allow-Origin"] = "*"
-        return response
+        resp = HttpResponse()
+        resp['Allow'] = 'POST'
+        return resp
     email = request.POST.get('email', None)
     password = request.POST.get('password', None)  # md5 by front-end
     user = authenticate(email=email, password=password)
@@ -19,7 +19,6 @@ def login(request):
         api_key = HoocalApiKey.objects.create(user=user)
         response = HttpResponse(json.dumps({'ret': 0, 'msg': 'ok'}))
         response['X-Hoocal-Token'] = api_key.key
-        response["Access-Control-Allow-Origin"] = "*"
         return response
     else:
         return HttpUnauthorized()
