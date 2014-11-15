@@ -7,7 +7,7 @@ from tastypie import fields, serializers
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
 from tastypie.exceptions import BadRequest, Unauthorized
-from tastypie.http import HttpBadRequest
+from tastypie.http import HttpBadRequest, HttpAccepted, HttpCreated
 from tastypie.resources import ModelResource
 from tastypie.utils.urls import trailing_slash
 from hocalen.models import Event, User, Org, Comment
@@ -22,19 +22,7 @@ class HoocalBaseResource(ModelResource):
     rewrite some of the methods to fit Hoocal's API
     """
 
-    def alter_list_data_to_serialize(self, request, data):
-        """
-        Remove 'meta' key which exist in the origin method of ModelResource
-        """
-        return data['objects']
-
-    def options_list(self, request, **kwargs):
-        str_list_allowed_methods = ' '.join(self.list_allowed_methods).upper()
-        return HttpResponse("Allow: %s" % str_list_allowed_methods)
-
-    def options_detail(self, request, **kwargs):
-        str_detail_allowed_methods = ' '.join(self.detail_allowed_methods).upper()
-        return HttpResponse("Allow: %s" % str_detail_allowed_methods)
+    pass
 
 
 class UserResource(HoocalBaseResource):
@@ -51,6 +39,7 @@ class UserResource(HoocalBaseResource):
                 'email': ALL,
                 'id': ALL,
                 }
+        always_return_data = True
 
     def validate_password(self, password):
         if not password:
@@ -103,6 +92,7 @@ class EventResource(HoocalBaseResource):
             'org': ALL_WITH_RELATIONS,
             'id': ALL,
         }
+        always_return_data = True
 
     def object_create(self, bundle, **kwargs):
         user = bundle.request.user
@@ -130,27 +120,98 @@ class OrgResource(HoocalBaseResource):
             'id': ALL,
         }
         always_return_data = True
-    
+
     def object_create(self, bundle, **kwargs):
         user = bundle.request.user
-        return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)       
+        return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)
 
-    def __authorized(self, ):
-        pass
+    def __authorized(self, request, **kwargs):
+        return Org.objects.filter(pk=kwargs[self._meta.detail_uri_name], owner=request.user).exists()
 
     def put_detail(self, request, **kwargs):
         if self.__authorized(request):
-            org_id = self._meta.detail_uri_name
-
+            super(OrgResource, self).put_detail(request, **kwargs)
+        else:
+            raise Unauthorized()
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/member/%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/member%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('get_member')),
+            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/member/(?P<user_id>\d+)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_member')),
+            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/event%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('get_event')),
         ]
 
-    def __get_members(self, **kwargs):
-        org_id = self._meta.detail_uri_name
-        org = Org.objects.get(pk=org_id)
+    def get_member(self, request, **kwargs):
+        self.method_check(request, allowed=['get'])
+        if not self.__authorized(request, **kwargs):
+            raise Unauthorized()
+        org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
+        objects = org.members.all()
+        sorted_objects = self.apply_sorting(objects, options=request.GET)
+        paginator = self._meta.paginator_class(request.GET, sorted_objects)
+        to_be_serialized = paginator.page()
+        bundles = []
+
+        user_resource = UserResource()
+        for obj in to_be_serialized[self._meta.collection_name]:
+            bundle = user_resource.build_bundle(obj=obj, request=request)
+            bundles.append(user_resource.full_dehydrate(bundle, for_list=True))
+
+        to_be_serialized[self._meta.collection_name] = bundles
+        to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
+        return self.create_response(request, to_be_serialized)
+
+    def post_member(self, request, **kwargs):
+        if not self.__authorized(request, **kwargs):
+            raise Unauthorized()
+        org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
+        try:
+            user = User.objects.get(pk=int(kwargs['user_id']))
+            org.members.add(user)
+            return HttpCreated(json.dumps({'ret': 0, 'msg': 'ok'}))
+        except ObjectDoesNotExist:
+            raise BadRequest("User does exist")
+
+    def delete_member(self, request, **kwargs):
+        if not self.__authorized(request, **kwargs):
+            raise Unauthorized()
+        org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
+        try:
+            user = User.objects.get(pk=int(kwargs['user_id']))
+            org.members.remove(user)
+            return HttpAccepted(json.dumps({'ret': 0, 'msg': 'ok'}))
+        except ObjectDoesNotExist:
+            raise BadRequest("User does exist")
+
+    def dispatch_member(self, request, **kwargs):
+        request_method = self.method_check(request, allowed=['post', 'delete'])
+        if request_method == 'post':
+            return self.post_member(request, **kwargs)
+        else:
+            return self.delete_member(request, **kwargs)
+
+    def get_event(self, request, **kwargs):
+        self.method_check(request, allowed=['get'])
+        try:
+            org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
+        except ObjectDoesNotExist:
+            raise BadRequest("Org Does not exist")
+        objects = org.events.all()
+        sorted_objects = self.apply_sorting(objects, options=request.GET)
+        paginator = self._meta.paginator_class(request.GET, sorted_objects)
+        to_be_serialized = paginator.page()
+        bundles = []
+
+        event_resource = EventResource()
+        for obj in to_be_serialized[self._meta.collection_name]:
+            bundle = event_resource.build_bundle(obj=obj, request=request)
+            bundles.append(event_resource.full_dehydrate(bundle, for_list=True))
+
+        to_be_serialized[self._meta.collection_name] = bundles
+        to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
+        return self.create_response(request, to_be_serialized)
+
+
 
 class CommentResource(HoocalBaseResource):
     event = fields.ForeignKey('hocalen.api.resources.EventResource', 'event')
@@ -168,6 +229,7 @@ class CommentResource(HoocalBaseResource):
                 'user': ALL_WITH_RELATIONS,
                 'id': ALL,
                 }
+        always_return_data = True
 
     def obj_create(self, bundle, **kwargs):
         user = bundle.request.user
