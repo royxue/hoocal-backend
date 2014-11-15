@@ -6,7 +6,7 @@ from tastypie.authentication import ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from tastypie.exceptions import Unauthorized
 from tastypie.utils.urls import trailing_slash
-from hocalen.models import HoocalApiKey
+from hocalen.models import HoocalApiKey, Event
 
 
 class HoocalApiKeyAuthentication(ApiKeyAuthentication):
@@ -192,4 +192,13 @@ class SelfResourceAuthorization(Authorization):
         if self.no_delete:
             raise Unauthorized("Sorry, no deletes.")
         return getattr(bundle.obj, self.self_type) == bundle.request.user
+
+
+def event_authorization(func):
+    def wrapper(resource_obj, request, **kwargs):
+        if not Event.objects.filter(pk=kwargs[resource_obj._meta.detail_uri_name], owner=request.user).exists():
+            raise Unauthorized("Not your event")
+        else:
+            return func(resource_obj, request, **kwargs)
+    return wrapper
 

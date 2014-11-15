@@ -1,4 +1,5 @@
 import json
+from django import http
 from django.conf.urls import url
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
@@ -6,12 +7,13 @@ from django.http.response import HttpResponse
 from tastypie import fields, serializers
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
-from tastypie.exceptions import BadRequest, Unauthorized
+from tastypie.exceptions import BadRequest, Unauthorized, ImmediateHttpResponse
 from tastypie.http import HttpBadRequest, HttpAccepted, HttpCreated
-from tastypie.resources import ModelResource
+from tastypie.resources import ModelResource, convert_post_to_put
 from tastypie.utils.urls import trailing_slash
 from hocalen.models import Event, User, Org, Comment
-from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization
+from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization, \
+    event_authorization
 from django.utils.translation import ugettext as _
 from tastypie.constants import ALL_WITH_RELATIONS, ALL
 import calendar
@@ -100,6 +102,50 @@ class EventResource(HoocalBaseResource):
             org = Org.objects().filter(name=bundle['org'])
         return super(EventResource, self).obj_create(bundle, created_by=user, org=org, **kwargs)
 
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/like%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_like')),
+        ]
+
+    def dispatch_like(self, request, **kwargs):
+        request_method = self.method_check(request, allowed=['post', 'delete'])
+        method = getattr(self, request_method+'_like')
+        if method is None:
+            raise ImmediateHttpResponse(response=http.HttpNotImplemented())
+
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        # All clear. Process the request.
+        request = convert_post_to_put(request)
+        response = method(request, **kwargs)
+
+        # Add the throttled request.
+        self.log_throttled_access(request)
+
+        if not isinstance(response, HttpResponse):
+            return http.HttpNoContent()
+
+        return response
+
+    def post_like(self, request, **kwargs):
+        event_id = kwargs[self._meta.detail_uri_name]
+        try:
+            event = Event.objects.get(pk=event_id)
+        except ObjectDoesNotExist:
+            raise BadRequest("Event does not exist")
+        event.like_users.add(request.user)
+        return HttpCreated(json.dumps({'ret': 0, 'msg': 'ok'}))
+
+    def delete_like(self, request ,**kwargs):
+        event_id = kwargs[self._meta.detail_uri_name]
+        try:
+            event = Event.objects.get(pk=event_id)
+        except ObjectDoesNotExist:
+            raise BadRequest("Event does not exist")
+        event.like_users.remove(request.user)
+        return HttpCreated(json.dumps({'ret': 0, 'msg': 'ok'}))
+
         
 class OrgResource(HoocalBaseResource):
     owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
@@ -143,6 +189,7 @@ class OrgResource(HoocalBaseResource):
 
     def get_member(self, request, **kwargs):
         self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
         if not self.__authorized(request, **kwargs):
             raise Unauthorized()
         org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
@@ -170,7 +217,7 @@ class OrgResource(HoocalBaseResource):
             org.members.add(user)
             return HttpCreated(json.dumps({'ret': 0, 'msg': 'ok'}))
         except ObjectDoesNotExist:
-            raise BadRequest("User does exist")
+            raise BadRequest("User does not exist")
 
     def delete_member(self, request, **kwargs):
         if not self.__authorized(request, **kwargs):
@@ -181,17 +228,32 @@ class OrgResource(HoocalBaseResource):
             org.members.remove(user)
             return HttpAccepted(json.dumps({'ret': 0, 'msg': 'ok'}))
         except ObjectDoesNotExist:
-            raise BadRequest("User does exist")
+            raise BadRequest("User does not exist")
 
     def dispatch_member(self, request, **kwargs):
         request_method = self.method_check(request, allowed=['post', 'delete'])
-        if request_method == 'post':
-            return self.post_member(request, **kwargs)
-        else:
-            return self.delete_member(request, **kwargs)
+        method = getattr(self, request_method+'_member')
+        if method is None:
+            raise ImmediateHttpResponse(response=http.HttpNotImplemented())
+
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        # All clear. Process the request.
+        request = convert_post_to_put(request)
+        response = method(request, **kwargs)
+
+        # Add the throttled request.
+        self.log_throttled_access(request)
+
+        if not isinstance(response, HttpResponse):
+            return http.HttpNoContent()
+
+        return response
 
     def get_event(self, request, **kwargs):
         self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
         try:
             org = Org.objects.get(pk=kwargs[self._meta.detail_uri_name])
         except ObjectDoesNotExist:
