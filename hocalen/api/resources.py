@@ -82,6 +82,7 @@ class EventResource(HoocalBaseResource):
         bundle.data['end_time'] = timestamp_of(bundle.data['end_time'])
         bundle.data['created_at'] = timestamp_of(bundle.data['created_at'])
         bundle.data['last_modified'] = timestamp_of(bundle.data['last_modified'])
+        bundle.data['created_by'] = bundle.obj.created_by.nickname
         return bundle
 
     class Meta:
