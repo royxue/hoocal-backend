@@ -42,7 +42,7 @@ class Org(models.Model):
     content = models.TextField()
     owner = models.ForeignKey(USER_MODEL, related_name='own_orgs')
     members = models.ManyToManyField(USER_MODEL, related_name='member_orgs', db_table='hoocal_org_member')
-    followers = models.ManyToManyField(USER_MODEL, related_name='follow_orgs', db_table='hoocal_org_follow', null=True)
+    followers = models.ManyToManyField(USER_MODEL, related_name='follow_orgs', db_table='hoocal_org_follow')
 
     class Meta:
         db_table = 'hoocal_org'
