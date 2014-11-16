@@ -1,0 +1,20 @@
+section.hc-login-container(layout="vertical" layout-align="center center")
+  md-content.hc-login-content(layout="vertical")
+    md-tabs.tabpanel-tabs(selected="tab_selected" center)
+      md-tab() Login
+      md-tab() Register
+    ng-switch.tabpanel-container(on="tab_selected")
+      div.tab-content(role="tabpanel" id="tab-login-content" ng-switch-when="0" layout="vertical" layout-align="start center")
+        form(name="login_form" layout="vertical" layout-align="start center")
+          md-text-float(label="E-mail" aria-label="E-mail" ng-model="login.email" type="email" required)
+          md-text-float(label="Password" aria-label="Password" ng-model="login.password" type="password" required)
+          p
+            md-button.md-primary.md-raised(aria-label="Login" ng-click="login(login.email, login.password)" ng-disabled="pl_login || login_form.$invalid") Login
+      div.tab-content(role="tabpanel" id="tab-register-content" ng-switch-when="1" layout="vertical" layout-align="start center")
+        form(name="register_form" layout="vertical" layout-align="start center")
+          md-text-float(label="E-mail" aria-label="E-mail" ng-model="register.email" type="email" required)
+          md-text-float(label="Nickname" aria-label="Nickname" ng-model="register.nickname" type="text" required)
+          md-text-float(label="Password" aria-label="Password" ng-model="register.password" type="password" required)
+          md-text-float(label="Retype password" aria-label="Retype password" ng-model="register.password_retype" type="password" required)
+          p
+            md-button.md-primary.md-raised(aria-label="Register" ng-disabled="pl_register || register_form.$invalid || register.password_retype != register.password" ng-click="register(register.email, register.password, register.nickname)") Register

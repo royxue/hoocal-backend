@@ -1,0 +1,14 @@
+doctype html
+html(ng-app="hoocal")
+  head
+    title HooCal
+    script(src="https://www.moxtra.com/api/js/moxtra-latest.js" id="moxtrajs" data-client-id="vA3Sp_wHKWA")
+    script(src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha256.js")
+    script(src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js")
+    // inject:css 
+    // endinject 
+  body
+    md-content.hc-container(layout="vertical" hcd-app ng-view md-theme="cyan")
+    #calendar
+    // inject:js 
+    // endinject 

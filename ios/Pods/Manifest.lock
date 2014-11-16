@@ -1,0 +1,53 @@
+PODS:
+  - ActionSheetPicker-3.0 (1.3.5)
+  - AFNetworking (2.4.1):
+    - AFNetworking/NSURLConnection
+    - AFNetworking/NSURLSession
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+    - AFNetworking/UIKit
+  - AFNetworking/NSURLConnection (2.4.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/NSURLSession (2.4.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (2.4.1)
+  - AFNetworking/Security (2.4.1)
+  - AFNetworking/Serialization (2.4.1)
+  - AFNetworking/UIKit (2.4.1):
+    - AFNetworking/NSURLConnection
+    - AFNetworking/NSURLSession
+  - CocoaSecurity (1.2.4)
+  - CupertinoYankee (0.1.1)
+  - DateTools (1.4.3)
+  - MSCollectionViewCalendarLayout (0.1.3):
+    - CupertinoYankee (~> 0.1)
+  - Realm (0.87.4):
+    - Realm/Headers
+  - Realm/Headers (0.87.4)
+  - SVProgressHUD (1.0)
+
+DEPENDENCIES:
+  - ActionSheetPicker-3.0 (~> 1.3.5)
+  - AFNetworking (~> 2.0)
+  - CocoaSecurity
+  - DateTools
+  - MSCollectionViewCalendarLayout
+  - Realm
+  - SVProgressHUD (~> 1.0)
+
+SPEC CHECKSUMS:
+  ActionSheetPicker-3.0: ffefc6fdafbb5392072f82fa8754454d7a87de2e
+  AFNetworking: 0aabc6fae66d6e5d039eeb21c315843c7aae51ab
+  CocoaSecurity: 7ce1b967863d4e96dcffdbad17671117900e6c6e
+  CupertinoYankee: b07873e724c2c5c1a249c555a5bd3d508c04e0de
+  DateTools: 7c2d233ea2d4bda3a717d0cd5f58da926a5998d0
+  MSCollectionViewCalendarLayout: 10ca29578b0dd9b8586b1beed3ab479a3788b4b5
+  Realm: 17d0d9c94b38d15223fa3e806ead0e0562765e46
+  SVProgressHUD: 5034c6e22b8c2ca3e09402e48d41ed0340aa1c50
+
+COCOAPODS: 0.33.1

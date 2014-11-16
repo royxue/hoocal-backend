@@ -1,0 +1,57 @@
+section.hc-main-container(layout-fill layout="horizontal" flex)
+  md-sidenav.md-sidenav-left.md-whiteframe-z2.hc-edit-sidenav(is-open="edit_show")
+    md-toolbar
+      md-text-float(aria-label="Title" label="Title" ng-model="current_event.title")
+    md-content.md-padding
+      md-text-float(label="Content" ng-model="current_event.content")
+      section.gray
+        md-switch(ng-model="current_event.is_public") Public to the public scope
+      section.share
+        img(src="images/qrcode.png")
+        br
+        md-button.md-raised.md-primary Share via E-mail
+        br
+        md-button.md-raised.md-primary(ng-click="moxtra()") Chat on Moxtra
+      section.gray.time From {{current_event.start_time*1000 | date:'yyyy-MM-dd'}} to {{current_event.end_time*1000 | date:'yyyy-MM-dd'}}, created at {{current_event.created_at*1000 | date:'yyyy-MM-dd'}}
+      section.comment
+        label.title Comments
+        md-text-float(label="Leave comment")
+        md-list
+          div
+            a(href="/") Roy Xue
+            span : I love this event!
+          div
+            a(href="/") Roy Xue
+            span : Want to get the big price.
+          div
+            a(href="/") Edward
+            span : LS is nuts
+          div
+            a(href="/") Garry Zhang
+            span : Haha..
+          div
+            a(href="/") Ommm
+            span : Emm...
+  md-content.md-padding.hc-main-content(flex layout-fill layout="vertical" layout-align="center center")
+    hcd-calendar(layout="vertical" layout-align="center center")
+      section(layout="horizontal" layout-align="center center")
+        md-button.md-raised(ng-click="prev()") &lt;
+        md-button.md-raised(ng-click="next()") >
+        h1(flex) 2014
+        md-button.md-raised Today
+      .hc-calendar
+    md-button.md-fab.md-primary.md-fab-top-left(aria-label="Create event") +
+    md-button.md-fab.md-primary.md-fab-bottom-left(aria-label="Discovery fun") FUN
+  md-sidenav.md-sidenav-right.md-whiteframe-z2.hc-main-sidenav(is-locked-open="true" flex="35")
+    md-toolbar
+      h1 Upcoming
+    md-content.md-padding(ng-controller="hcMainSidenav")
+      md-list
+        md-item(ng-repeat="event in events")
+          md-whiteframe( layout="horizontal")
+            md-icon(icon="images/ic_event_grey600_24dp.png")
+            section(flex)
+              h4(ng-bind="event.title")
+              h5(ng-bind="event.content")
+              section
+                md-button.md-primary(ng-click="editEvent(event)" aria-label="Edit event") Details

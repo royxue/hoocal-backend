@@ -1,0 +1,195 @@
+html,
+body {
+  min-height: 100%;
+}
+
+
+md-tab {
+  outline: none;
+}
+
+.hc-container {
+  min-height: 100%;
+  margin: 0 auto 0;
+}
+
+.hc-title {
+  padding: 0 25px;
+}
+
+.tabpanel-tabs {
+  width: 480px;
+  position: relative;
+}
+
+.hc-login-container {
+  position: relative;
+  height: 700px;
+
+  &:before {
+    content: ' ';
+    position: absolute;
+  }
+}
+
+.hc-login-content {
+  width: 480px;
+  height: 480px;
+  box-shadow: 0px 2px 5px 0 rgba(0, 0, 0, 0.26);
+
+  .hc-login-title {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .tab-content {
+    padding: 40px 40px 0;
+  }
+
+  md-tab {
+    background: #9c9;
+  }
+}
+
+.hc-main-content {
+  position: relative;
+  overflow: hidden;
+  hcd-calendar {
+    width: 800px;
+    .hc-calendar {
+      height: 500px;
+      width: 800px;
+      .fc-today {
+        border: none;
+      }
+    }
+  }
+}
+
+.hc-calendar {
+  table,
+  th,
+  td {
+    border: none;
+  }
+  .fc-day:not(.fc-other-month) {
+    cursor: pointer;
+  }
+  .fc-day:not(.fc-other-month):nth-child(odd) {
+    background: rgba(0, 200, 244, .25);
+  }
+  .fc-day:not(.fc-other-month):nth-child(even) {
+    background: rgba(0, 200, 244, .15);
+  }
+  .fc-day:not(.fc-other-month):hover {
+    background: rgba(0, 200, 244, .1);
+    transition: background .2s;
+  }
+}
+
+.hc-main-sidenav h1 {
+  margin-left: .4em;
+}
+
+hcd-calendar>section {
+  background: #fafafa;
+  width: 800px;
+  margin: 10px 0;
+  padding: 4px;
+  border-radius: 4px;
+
+  &>* + * {
+    margin-left: 10px;
+  }
+  button {
+    line-height: 20px;
+  }
+  img {
+    height: 20px;
+  }
+
+  h1 {
+    margin: 0;
+    text-align: center;
+  }
+}
+
+.hc-main-sidenav {
+
+  md-content {
+    overflow: auto;
+    height: 660px;
+  }
+
+  md-whiteframe {
+    border: solid 1px #eee;
+
+    transition: all .4s;
+
+    &:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+  }
+  md-item:not(:last-child) md-whiteframe {
+    border-bottom: none;
+  }
+
+  h4 {
+    margin: 10px 6px;
+    color: #777;
+  }
+  h5 {
+    margin: 6px;
+    color: #aaa;
+  }
+}
+
+.hc-edit-sidenav {
+  width: 480px;
+  md-toolbar {
+    md-input-group {
+      margin-left: 18px;
+      input {
+        font-weight: bold;
+        color: white;
+      }
+    }
+  }
+  input {
+    width: 448px;
+  }
+  md-content > section.gray {
+    background: #eee;
+    padding: 6px;
+    border-radius: 4px;
+  }
+  .time {
+    margin-top: 10px;
+    color: #999;
+  }
+  section.comment {
+    margin-top: 40px;
+    border-top: dotted 1px #ddd;
+    .title {
+      color: #bbb;
+    }
+    a {
+      color: #00bcd4;
+      text-decoration: none;
+    }
+  }
+  section.share {
+    margin: 10px 0;
+    text-align: center;
+    img {
+      height: 128px;
+    }
+  }
+  // .from span,
+  // .to span,
+  // .create span {
+  //   border-radius: 4px;
+  //   background: #333;
+  //   color: white;
+  //   padding: 0 4px;
+  // }
+}

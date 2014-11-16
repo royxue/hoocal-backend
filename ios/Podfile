@@ -1,0 +1,8 @@
+platform :ios, '7.0'
+pod "AFNetworking", "~> 2.0"
+pod 'SVProgressHUD', '~> 1.0'
+pod 'CocoaSecurity'
+pod "Realm"
+pod 'ActionSheetPicker-3.0', '~> 1.3.5'
+pod 'DateTools'
+pod 'MSCollectionViewCalendarLayout'
