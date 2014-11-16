@@ -1,10 +1,12 @@
 from copy import deepcopy
+import urlparse
 import warnings
 from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from tastypie.exceptions import Unauthorized
+from tastypie.serializers import Serializer
 from tastypie.utils.urls import trailing_slash
 from hocalen.models import HoocalApiKey, Event
 
@@ -202,3 +204,23 @@ def event_authorization(func):
             return func(resource_obj, request, **kwargs)
     return wrapper
 
+
+class HoocalSerializer(Serializer):
+    formats = ['json', 'jsonp', 'xml', 'yaml', 'html', 'plist', 'urlencode']
+    content_types = {
+        'json': 'application/json',
+        'jsonp': 'text/javascript',
+        'xml': 'application/xml',
+        'yaml': 'text/yaml',
+        'html': 'text/html',
+        'plist': 'application/x-plist',
+        'urlencode': 'application/x-www-form-urlencoded',
+    }
+    def from_urlencode(self, data,options=None):
+        """ handles basic formencoded url posts """
+        qs = dict((k, v if len(v)>1 else v[0] )
+            for k, v in urlparse.parse_qs(data).iteritems())
+        return qs
+
+    def to_urlencode(self,content):
+        pass

@@ -38,4 +38,3 @@ def logout(request):
             return HttpResponse()
         except HoocalApiKey.DoesNotExist:
             return HttpBadRequest()
-

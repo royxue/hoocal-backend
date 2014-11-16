@@ -13,9 +13,9 @@ urlpatterns = patterns('',
 )
 
 # auth API for login
-urlpatterns += patterns('hocalen.auth.views',
-    url(r'^auth/$', 'login'),
-)
+# urlpatterns += patterns('hocalen.auth.views',
+#     url(r'^auth/$', 'login'),
+# )
 
 urlpatterns += patterns('',
     url(r'hoocal/', include(SelfSubscribeResource().urls))
@@ -32,5 +32,8 @@ urlpatterns += patterns('',
     url(r'', include(v1_api.urls)),
 )
 
+urlpatterns += patterns('',
+    url(r'', include(AuthResource().urls))
+)
 urlpatterns += staticfiles_urlpatterns()
     

@@ -1,19 +1,20 @@
 import json
 from django import http
 from django.conf.urls import url
+from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import HttpResponse
-from tastypie import fields, serializers
+from tastypie import fields
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
 from tastypie.exceptions import BadRequest, Unauthorized, ImmediateHttpResponse
 from tastypie.http import HttpBadRequest, HttpAccepted, HttpCreated
 from tastypie.resources import ModelResource, convert_post_to_put
 from tastypie.utils.urls import trailing_slash
-from hocalen.models import Event, User, Org, Comment
-from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization, \
-    event_authorization
+from hocalen.models import Event, User, Org, Comment, HoocalApiKey
+from hocalen.api.utils import HoocalApiKeyAuthentication, SelfAuthorization, SelfSetResourceAuthorization,\
+    HoocalSerializer
 from django.utils.translation import ugettext as _
 from tastypie.constants import ALL_WITH_RELATIONS, ALL
 import calendar
@@ -37,7 +38,8 @@ class UserResource(HoocalBaseResource):
         allowed_methods = ['get', 'post', 'patch', 'options']
         authentication = Authentication()
         authorization = Authorization()
-        serializers = serializers.Serializer(formats=['json', 'xml'])
+        #serializers = serializers.Serializer(formats=['json', 'xml'])
+        serializer = HoocalSerializer()
         filtering = {
                 'email': ALL,
                 'id': ALL,
@@ -59,7 +61,7 @@ class UserResource(HoocalBaseResource):
         if not nickname and not email:
             raise BadRequest(json.dumps({'ret': -1, 'msg': _("Nickname and Email must be set")}))
         elif User.objects.filter(email=email).exists():
-            raise BadRequest(json.dumps({'ret': -2, 'msg': _("Email must duplicated")}))
+            raise BadRequest(json.dumps({'ret': -2, 'msg': _("Email is duplicated")}))
         return super(UserResource, self).obj_create(bundle, **kwargs)
 
     def save(self, bundle, skip_errors=False):
@@ -88,7 +90,7 @@ class EventResource(HoocalBaseResource):
         allowed_methods = ['get', 'post', 'put', 'options']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
-        serializers = serializers.Serializer(formats=['json', 'xml']) 
+        serializer = HoocalSerializer()
         filtering = {
             'title': ('icontains',),
             'created_by': ALL_WITH_RELATIONS,
@@ -152,16 +154,16 @@ class EventResource(HoocalBaseResource):
         
 class OrgResource(HoocalBaseResource):
     owner = fields.ForeignKey('hocalen.api.resources.UserResource', 'owner')
-    members = fields.ManyToManyField('hocalen.api.resources.UserResource', 'members')
-    followers = fields.ManyToManyField('hocalen.api.resources.UserResource', 'followers')
+    #members = fields.ManyToManyField('hocalen.api.resources.UserResource', 'members')
+    #followers = fields.ManyToManyField('hocalen.api.resources.UserResource', 'followers')
 
     class Meta:
         queryset = Org.objects.all()
         resource_name = 'org'
-        allowed_methods = ['get', 'post', 'put', 'options']
+        allowed_methods = ['get', 'post', 'put', 'options', 'delete']
         authentication = HoocalApiKeyAuthentication()
         authorization = Authorization()
-        serializers = serializers.Serializer(formats=['json', 'xml'])
+        serializer = HoocalSerializer()
         filtering = {
             'name': ('icontains',),
             'owner': ALL_WITH_RELATIONS,
@@ -170,9 +172,11 @@ class OrgResource(HoocalBaseResource):
         }
         always_return_data = True
 
-    def object_create(self, bundle, **kwargs):
+    def obj_create(self, bundle, **kwargs):
         user = bundle.request.user
-        return super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)
+        bundle = super(OrgResource, self).obj_create(bundle, owner=user, **kwargs)
+        bundle.obj.members.add(user)
+        return bundle
 
     def __authorized(self, request, **kwargs):
         return Org.objects.filter(pk=kwargs[self._meta.detail_uri_name], owner=request.user).exists()
@@ -296,6 +300,7 @@ class CommentResource(HoocalBaseResource):
                 'id': ALL,
                 }
         always_return_data = True
+        serializer = HoocalSerializer()
 
     def obj_create(self, bundle, **kwargs):
         user = bundle.request.user
@@ -312,10 +317,10 @@ class SelfResource(HoocalBaseResource):
         authorization = SelfAuthorization()
         fields = ['email', 'nickname']
         always_return_data = True
-        serializers = serializers.Serializer(formats=['json', 'xml'])
+        serializer = HoocalSerializer()
 
     def alter_list_data_to_serialize(self, request, data):
-        result = super(SelfResource, self).alter_list_data_to_serialize(request, data)[0]
+        result = super(SelfResource, self).alter_list_data_to_serialize(request, data)['objects'][0]
         return result
 
     def put_list(self, request, **kwargs):
@@ -341,7 +346,7 @@ class SelfSubscribeResource(HoocalBaseResource):
         detail_allowed_methods = ['post', 'delete', 'options']
         list_allowed_methods = ['get', 'options']
         always_return_data = True
-        serializers = serializers.Serializer(formats=['json', 'xml'])
+        serializer = HoocalSerializer()
 
     def post_detail(self, request, **kwargs):
         field_name = self._meta.detail_uri_name # seems field_name is fixed, namely "pk"
@@ -366,3 +371,31 @@ def timestamp_of(d):
   if hasattr(d, 'isoformat'):
     return calendar.timegm(d.utctimetuple())
   return None
+
+
+class AuthResource(HoocalBaseResource):
+
+    class Meta:
+        detail_allowed_methods = []
+        list_allowed_methods = ['post', 'options']
+        serializer = HoocalSerializer()
+        authentication = Authentication()
+        authorization = Authorization()
+        always_return_data = True
+        resource_name = 'auth'
+
+    def post_list(self, request, **kwargs):
+        self.method_check(request, allowed=['post'])
+        self.throttle_check(request)
+        body = request.body
+        data = self.deserialize(request, body, format=request.META.get('CONTENT_TYPE', 'application/json'))
+        email = data.get('email', None)
+        password = data.get('password', None)  # md5 by front-end
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            api_key = HoocalApiKey.objects.create(user=user)
+            response = HttpResponse(json.dumps({'ret': 0, 'msg': 'ok'}))
+            response['X-Hoocal-Token'] = api_key.key
+            return response
+        else:
+            raise Unauthorized
